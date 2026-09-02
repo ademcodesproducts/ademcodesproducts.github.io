@@ -4,92 +4,117 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Adem Arteau - CS180</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="page">
+<div class="wrap">
 
-<h1>Adem Arteau</h1>
-<p class="intro">
-  CS180 / CS280A: Intro to Computer Vision and Computational Photography.
-  UC Berkeley, Fall 2026. All photos taken on my iPhone.
-</p>
-<p class="intro">ademarteau@berkeley.edu</p>
+<header>
+  <div class="mark">AA</div>
+  <h1>Adem Arteau</h1>
+  <p class="sub">Computer Vision &amp; Computational Photography at UC Berkeley.</p>
+  <div class="chips">
+    <a class="chip on" href="#proj0">Project 0</a>
+    <span class="chip off">Project 1</span>
+    <span class="chip off">Project 2</span>
+  </div>
+</header>
 
-<hr>
-
-<h2>Project 0: Becoming Friends with Your Camera</h2>
-<p>
-  The point of this project was to see that perspective comes from where you stand,
-  not from how much you zoom. Zooming only changes how much of the picture you keep.
-</p>
-
-<h3>1. Selfie, close vs. far</h3>
-<div class="two">
-  <figure>
-    <img src="proj0/media/p1_close.jpg" alt="Selfie taken at arm's length.">
-    <figcaption>Arm's length, no zoom.</figcaption>
-  </figure>
-  <figure>
-    <img src="proj0/media/p1_far.jpg" alt="Portrait taken from farther away with the lens zoomed in.">
-    <figcaption>Stepped back, zoomed in to match the framing.</figcaption>
-  </figure>
+<div class="panel facts">
+  <div class="row"><span>Course</span><b>CS180 / CS280A</b></div>
+  <div class="row"><span>Term</span><b>Fall 2026</b></div>
+  <div class="row"><span>Shot on</span><b>iPhone</b></div>
+  <div class="row"><span>Contact</span><b>ademarteau@berkeley.edu</b></div>
 </div>
-<p>
-  Both photos have my face at about the same size, but the close one looks wrong.
-  My nose is much bigger and my ears almost disappear. That happens because up close
-  my nose is way nearer to the camera than my ears are, so it gets projected larger.
-  When I back up, everything on my face is roughly the same distance away, so the
-  proportions look normal again. The lens is not the problem, the distance is.
-</p>
 
-<h3>2. Building, near vs. far</h3>
-<div class="two">
-  <figure>
-    <img src="proj0/media/p2_zoom.jpg" alt="Building arcade shot from far away with the lens zoomed in.">
-    <figcaption>Far away, zoomed in.</figcaption>
-  </figure>
-  <figure>
-    <img src="proj0/media/p2_walk.jpg" alt="The same arcade shot from close up at a wide angle.">
-    <figcaption>Walked up close, wide angle.</figcaption>
-  </figure>
+<section id="proj0">
+  <p class="tag">Project 0</p>
+  <h2>Becoming Friends<br>with Your Camera</h2>
+  <p class="lead">
+    Perspective comes from where you stand, not from how much you zoom.
+    Zooming only changes how much of the picture you keep.
+  </p>
+
+  <div class="part">
+    <p class="num">01</p>
+    <h3>Selfie, close vs. far</h3>
+    <div class="two portrait">
+      <figure>
+        <img src="proj0/media/p1_close.jpg" alt="Selfie taken at arm's length.">
+        <figcaption><b>Arm's length.</b> No zoom.</figcaption>
+      </figure>
+      <figure>
+        <img src="proj0/media/p1_far.jpg" alt="Portrait taken from farther away with the lens zoomed in.">
+        <figcaption><b>Stepped back.</b> Zoomed in to match the framing.</figcaption>
+      </figure>
+    </div>
+    <p>
+      Both photos have my face at about the same size, but the close one looks wrong.
+      My nose is much bigger and my ears almost disappear. That happens because up close
+      my nose is way nearer to the camera than my ears are, so it gets projected larger.
+      When I back up, everything on my face is roughly the same distance away, so the
+      proportions look normal again. The lens is not the problem, the distance is.
+    </p>
+  </div>
+
+  <div class="part">
+    <p class="num">02</p>
+    <h3>Building, near vs. far</h3>
+    <div class="two">
+      <figure>
+        <img src="proj0/media/p2_zoom.jpg" alt="Building arcade shot from far away with the lens zoomed in.">
+        <figcaption><b>Far away.</b> Zoomed in.</figcaption>
+      </figure>
+      <figure>
+        <img src="proj0/media/p2_walk.jpg" alt="The same arcade shot from close up at a wide angle.">
+        <figcaption><b>Up close.</b> Wide angle.</figcaption>
+      </figure>
+    </div>
+    <p>
+      Same idea in reverse. From far away the arches stack up on each other and the whole
+      building looks flat, almost like a poster. When I walk up close, the near arch towers
+      over the far one and you can actually feel how deep the hallway is. People call this
+      telephoto compression, but the lens is not doing it. Standing far away is.
+    </p>
+  </div>
+
+  <div class="part">
+    <p class="num">03</p>
+    <h3>Dolly zoom</h3>
+    <figure class="hero">
+      <img src="proj0/media/dollyzoom.gif" alt="Animated dolly zoom self portrait.">
+      <figcaption><b>Backing up and zooming in at once.</b> Played out and back.</figcaption>
+    </figure>
+    <div class="strip">
+      <figure><img src="proj0/media/p3_01_14mm.jpg" alt="Dolly zoom frame 1."><figcaption>01</figcaption></figure>
+      <figure><img src="proj0/media/p3_02_69mm.jpg" alt="Dolly zoom frame 2."><figcaption>02</figcaption></figure>
+      <figure><img src="proj0/media/p3_03_159mm.jpg" alt="Dolly zoom frame 3."><figcaption>03</figcaption></figure>
+      <figure><img src="proj0/media/p3_04_249mm.jpg" alt="Dolly zoom frame 4."><figcaption>04</figcaption></figure>
+      <figure><img src="proj0/media/p3_05_249mm.jpg" alt="Dolly zoom frame 5."><figcaption>05</figcaption></figure>
+    </div>
+    <p>
+      I took five photos while walking backwards and zooming in, keeping my head the same
+      size in every frame. The size stays locked, but the shape does not. In the first frame
+      the camera is right in my face so my nose bulges out, and by the last frame I am far
+      enough back that my face goes almost flat. It is the same thing as part 01, just spread
+      out into an animation.
+    </p>
+  </div>
+</section>
+
+<div class="panel next">
+  <p class="tag">Up next</p>
+  <p>Project 1 will be posted here once it is finished.</p>
 </div>
-<p>
-  Same idea in reverse. From far away the arches stack up on each other and the whole
-  building looks flat, almost like a poster. When I walk up close, the near arch towers
-  over the far one and you can actually feel how deep the hallway is. People call this
-  telephoto compression, but the lens is not doing it. Standing far away is.
-</p>
 
-<h3>3. Dolly zoom</h3>
-<figure class="wide">
-  <img src="proj0/media/dollyzoom.gif" alt="Animated dolly zoom self portrait.">
-  <figcaption>Backing up and zooming in at the same time, played out and back.</figcaption>
-</figure>
-<div class="strip">
-  <figure><img src="proj0/media/p3_01_14mm.jpg" alt="Dolly zoom frame 1."><figcaption>1</figcaption></figure>
-  <figure><img src="proj0/media/p3_02_69mm.jpg" alt="Dolly zoom frame 2."><figcaption>2</figcaption></figure>
-  <figure><img src="proj0/media/p3_03_159mm.jpg" alt="Dolly zoom frame 3."><figcaption>3</figcaption></figure>
-  <figure><img src="proj0/media/p3_04_249mm.jpg" alt="Dolly zoom frame 4."><figcaption>4</figcaption></figure>
-  <figure><img src="proj0/media/p3_05_249mm.jpg" alt="Dolly zoom frame 5."><figcaption>5</figcaption></figure>
-</div>
-<p>
-  I took five photos while walking backwards and zooming in, keeping my head the same
-  size in every frame. The size stays locked, but the shape does not. In the first frame
-  the camera is right in my face so my nose bulges out, and by the last frame I am far
-  enough back that my face goes almost flat. It is the same thing as part 1, just spread
-  out into an animation.
-</p>
-
-<hr>
-
-<p class="note">Project 1 will go here when it is done.</p>
-
-<p class="footer">
-  Adem Arteau, Fall 2026 &middot;
+<footer>
+  <span>Adem Arteau &middot; Fall 2026</span>
   <a href="https://github.com/ademcodesproducts">GitHub</a>
-</p>
+</footer>
 
 </div>
 
