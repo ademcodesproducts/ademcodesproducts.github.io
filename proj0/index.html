@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project 0 &middot; Becoming Friends with Your Camera &mdash; CS180</title>
+<meta name="description" content="CS180 Project 0: perspective, focal length, and the center of projection, demonstrated with a portrait pair, an architectural pair, and a dolly zoom.">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<div class="masthead">
+  <div class="wrap">
+    <a class="brand" href="../">Adem&nbsp;Arteau &middot; CS180</a>
+    <nav>
+      <a href="#part1">Selfie</a>
+      <a href="#part2">Architecture</a>
+      <a href="#part3">Dolly zoom</a>
+      <a href="../">All projects</a>
+    </nav>
+  </div>
+</div>
+
+<div class="wrap">
+
+<header class="page">
+  <p class="eyebrow">Project 0 &middot; Programming Project</p>
+  <h1>Becoming Friends<br>with Your Camera</h1>
+  <p class="standfirst">
+    Three small experiments on one idea: the shape of a photograph is decided by
+    <em>where you stand</em>, not by how far you zoom. Zoom only chooses how much of
+    that shape you keep.
+  </p>
+  <p class="byline">
+    Adem Arteau &middot; CS180: Intro to Computer Vision and Computational Photography &middot; Fall 2026<br>
+    All photographs shot on an iPhone 17 (wide + ultra-wide, f/1.6 &amp; f/2.2). Focal lengths quoted as 35&nbsp;mm equivalents from EXIF.
+  </p>
+</header>
+
+<!-- ================= PART 1 ================= -->
+<section id="part1">
+  <h2><span class="num">01</span>The Selfie: Wrong Way vs. Right Way</h2>
+  <p class="dek">Same face, same framing, two very different noses.</p>
+
+  <p>
+    Both frames below are framed to put my face at roughly the same size. The only thing
+    that changed between them is how far the camera was from my head &mdash; arm&rsquo;s length for
+    the first, a few feet back with the lens zoomed in to about 60&nbsp;mm equivalent for
+    the second.
+  </p>
+
+  <div class="pair portrait">
+    <figure>
+      <span class="tag">arm&rsquo;s length &middot; no zoom</span>
+      <img src="media/p1_close.jpg" alt="Close-up selfie taken at arm's length, showing an enlarged nose and narrowed ears.">
+      <figcaption><b>The wrong way.</b> Camera roughly 30&nbsp;cm from my face. The nose and
+      brow balloon, the cheeks widen, and the ears shrink away toward the edges of the head.</figcaption>
+    </figure>
+    <figure>
+      <span class="tag">stepped back &middot; 60 mm equiv.</span>
+      <img src="media/p1_far.jpg" alt="Portrait taken from several feet away with the lens zoomed in, showing natural facial proportions.">
+      <figcaption><b>The right way.</b> Camera roughly 1.5&nbsp;m back, zoomed in to match the
+      framing. The face settles into its normal proportions and the nose sits back where it belongs.</figcaption>
+    </figure>
+  </div>
+
+  <h3>Why this happens</h3>
+  <p>
+    A camera projects the world by dividing by depth: a feature at distance <i>Z</i> lands on
+    the sensor scaled by <i>f&thinsp;/&thinsp;Z</i>. What matters for the <em>shape</em> of a face is
+    therefore not <i>Z</i> itself but the <em>ratio</em> of depths between its parts.
+  </p>
+  <div class="scroller">
+  <table>
+    <thead><tr><th>Shot</th><th>Camera to nose</th><th>Camera to ears</th><th>Depth ratio</th><th>Nose magnified by</th></tr></thead>
+    <tbody>
+      <tr><td>Arm&rsquo;s length</td><td class="n">~30 cm</td><td class="n">~42 cm</td><td class="n">1.40</td><td class="n">+40 %</td></tr>
+      <tr><td>Stepped back</td><td class="n">~150 cm</td><td class="n">~162 cm</td><td class="n">1.08</td><td class="n">+8 %</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>
+    My nose sits about 12&nbsp;cm in front of my ears in both photographs &mdash; that never changes.
+    But at arm&rsquo;s length that 12&nbsp;cm is <em>40&nbsp;%</em> of the total distance, so the nose is
+    projected 40&nbsp;% larger than the ears. From 1.5&nbsp;m it is only 8&nbsp;%, which reads as a normal
+    face. The distortion isn&rsquo;t the lens misbehaving; it is honest perspective applied to a
+    subject that is uncomfortably close.
+  </p>
+
+  <div class="note">
+    <p class="lede">The takeaway</p>
+    <p>
+      Perspective is set entirely by the <b>center of projection</b> &mdash; the position of the
+      pinhole. Focal length cannot change it. Zooming in from the same spot would have given
+      me an identical, equally distorted face, just cropped tighter. What fixed the portrait
+      was <b>walking backwards</b>; the zoom was only there to undo the shrinking that walking
+      backwards caused.
+    </p>
+  </div>
+</section>
+
+<!-- ================= PART 2 ================= -->
+<section id="part2">
+  <h2><span class="num">02</span>Architectural Perspective Compression</h2>
+  <p class="dek">The same experiment, run backwards, on a building.</p>
+
+  <p>
+    Here I did the reverse: I started far away with the lens zoomed to 58&nbsp;mm equivalent,
+    then walked in to about half the distance and shot again at the native 27&nbsp;mm wide
+    angle. The arcade fills roughly the same fraction of both frames.
+  </p>
+
+  <div class="pair">
+    <figure>
+      <span class="tag">far away &middot; 58 mm equiv.</span>
+      <img src="media/p2_zoom.jpg" alt="Building arcade photographed from far away with the lens zoomed in; the facade looks flat.">
+      <figcaption><b>Zoomed in, from across the field.</b> The arches sit almost on top of one
+      another. Staircase, railing and far wall all feel pressed into a single plane &mdash; a flat,
+      poster-like facade.</figcaption>
+    </figure>
+    <figure>
+      <span class="tag">walked in &middot; 27 mm equiv.</span>
+      <img src="media/p2_walk.jpg" alt="The same building arcade photographed from close up at a wide angle; the arches recede strongly.">
+      <figcaption><b>Walked up close, wide.</b> Now the arcade opens up. The near arch towers over
+      the far one, the railing drives hard into the frame, and you can feel how deep the loggia
+      actually is.</figcaption>
+    </figure>
+  </div>
+
+  <h3>Why this happens</h3>
+  <p>
+    Take the near arch at distance <i>Z</i> and the far arch a fixed 6&nbsp;m behind it. Their
+    projected sizes are in the ratio <i>(Z&nbsp;+&nbsp;6)&thinsp;/&thinsp;Z</i>, which depends on
+    <i>Z</i> alone &mdash; the focal length divides out completely.
+  </p>
+  <div class="scroller">
+  <table>
+    <thead><tr><th>Shot</th><th>Focal (35 mm equiv.)</th><th>Distance to facade</th><th>Near&nbsp;:&nbsp;far arch size</th><th>Reads as</th></tr></thead>
+    <tbody>
+      <tr><td>Zoomed, far</td><td class="n">58 mm</td><td class="n">~24 m</td><td class="n">1.25 &times;</td><td>flattened</td></tr>
+      <tr><td>Wide, close</td><td class="n">27 mm</td><td class="n">~11 m</td><td class="n">1.55 &times;</td><td>deep, dramatic</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>
+    From 24&nbsp;m, a 6&nbsp;m difference in depth is a rounding error, so near and far details
+    come back nearly the same size and the building collapses into a flat pattern. From 11&nbsp;m
+    that same 6&nbsp;m is a large fraction of the total distance, so near features grow, lines
+    converge harder, and depth reappears.
+  </p>
+
+  <div class="note">
+    <p class="lede">The takeaway</p>
+    <p>
+      &ldquo;Telephoto compression&rdquo; is a misnomer. The long lens didn&rsquo;t compress anything &mdash;
+      <b>standing far away</b> did, by shrinking the relative depth differences in the scene. The
+      long lens is simply what makes standing far away practical, because it crops back to a
+      usable framing. Distance controls geometry; focal length controls field of view.
+    </p>
+  </div>
+</section>
+
+<!-- ================= PART 3 ================= -->
+<section id="part3">
+  <h2><span class="num">03</span>The Dolly Zoom</h2>
+  <p class="dek">Hitchcock&rsquo;s Vertigo shot: back up and zoom in at the same time.</p>
+
+  <p>
+    Parts 1 and 2 each changed distance and focal length together to hold the subject&rsquo;s size
+    fixed. The dolly zoom is what you get when you do that continuously, in one shot. I stepped
+    backwards through five positions while zooming from 14&nbsp;mm to 249&nbsp;mm equivalent &mdash;
+    an <b>18&times; swing in focal length</b>, and so an 18&times; change in distance &mdash; keeping
+    my head the same height in every frame.
+  </p>
+
+  <div class="dolly">
+    <figure>
+      <img src="media/dollyzoom.gif" alt="Animated GIF of a dolly zoom self-portrait: the head stays the same size while the face flattens from a wide-angle bulge to a compressed telephoto look.">
+      <figcaption><b>The dolly zoom.</b> Five stills, played out and back. My head never changes
+      size &mdash; but it changes <em>shape</em> the whole way through.</figcaption>
+    </figure>
+    <div>
+      <h3 style="margin-top:0">What to watch</h3>
+      <p>
+        The head stays locked at the same size, which is exactly the point: the two effects are
+        cancelling. But the face is visibly morphing underneath. At 14&nbsp;mm the camera is
+        centimetres away, so my nose is dramatically closer to the lens than my ears &mdash; it swells,
+        the forehead pushes forward, and the jaw tapers away. By 249&nbsp;mm I am metres back,
+        every point on my face is at nearly the same distance, and the whole thing flattens into
+        an almost orthographic mask: wider cheekbones, larger ears, a nose lying flush with the
+        rest of the face.
+      </p>
+      <p>
+        It is the Part&nbsp;1 comparison turned into a continuous animation, with every
+        intermediate step visible.
+      </p>
+    </div>
+  </div>
+
+  <div class="strip">
+    <figure><img src="media/p3_01_14mm.jpg" alt="Dolly zoom frame 1, 14 mm equivalent."><figcaption>1 &middot; 14 mm</figcaption></figure>
+    <figure><img src="media/p3_02_69mm.jpg" alt="Dolly zoom frame 2, 69 mm equivalent."><figcaption>2 &middot; 69 mm</figcaption></figure>
+    <figure><img src="media/p3_03_159mm.jpg" alt="Dolly zoom frame 3, 159 mm equivalent."><figcaption>3 &middot; 159 mm</figcaption></figure>
+    <figure><img src="media/p3_04_249mm.jpg" alt="Dolly zoom frame 4, 249 mm equivalent."><figcaption>4 &middot; 249 mm</figcaption></figure>
+    <figure><img src="media/p3_05_249mm.jpg" alt="Dolly zoom frame 5, 249 mm equivalent."><figcaption>5 &middot; 249 mm</figcaption></figure>
+  </div>
+
+  <div class="note">
+    <p class="lede">The takeaway</p>
+    <p>
+      In cinema the shot is normally read off the <em>background</em>: the subject holds still
+      while the world behind them rushes in or falls away, because the subject&rsquo;s distance ratio
+      is pinned by the zoom while everything at a different depth is not. My background here is a
+      blank wall with no depth cues, so that channel is missing &mdash; instead the effect shows up on
+      the only other surface in the frame with real depth variation, my own face.
+    </p>
+    <p>
+      Both readings are the same fact: holding <i>f&thinsp;/&thinsp;Z</i> constant for one plane
+      cannot hold it constant for any other. Something at a different depth always has to give.
+    </p>
+  </div>
+</section>
+
+<footer>
+  <p>
+    CS180 / CS280A &middot; Programming Project 0 &middot; Adem Arteau, Fall 2026 &middot;
+    <a href="../">back to portfolio</a>
+  </p>
+</footer>
+
+</div>
+</body>
+</html>
