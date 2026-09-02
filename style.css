@@ -72,11 +72,6 @@ h1 {
 
 .chip.on:hover { background: #2a2a2e; }
 
-.chip.off {
-  background: var(--grey-1);
-  color: var(--grey-mute);
-}
-
 /* grey panels */
 .panel {
   background: var(--grey-1);
@@ -194,35 +189,14 @@ figcaption b { color: var(--black); font-weight: 600; }
   font-variant-numeric: tabular-nums;
 }
 
-/* up next */
-.next {
-  margin-top: 70px;
-  padding: 30px 26px;
-}
-
-.next .tag { margin-bottom: 8px; }
-.next p { margin: 0; color: var(--grey-text); font-size: 16px; }
-
 /* footer */
 footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  margin-top: 60px;
+  margin-top: 80px;
   padding-top: 26px;
   border-top: 1px solid var(--grey-2);
   font-size: 14px;
   color: var(--grey-text);
 }
-
-footer a {
-  color: var(--black);
-  font-weight: 600;
-  text-decoration: none;
-}
-
-footer a:hover { text-decoration: underline; }
 
 @media (max-width: 640px) {
   body { font-size: 16px; }
