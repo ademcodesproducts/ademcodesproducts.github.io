@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arno Demarteau - CS280A Project 1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+<style>
+  .three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 30px; }
+  .four { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 30px; }
+  .four figcaption, .three figcaption { font-size: 13px; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; margin: 0 0 30px; font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--grey-2); }
+  th { font-weight: 600; color: var(--grey-text); font-size: 13px; }
+  td.bad { color: #c0392b; font-weight: 600; }
+  .tablewrap { overflow-x: auto; margin-bottom: 30px; }
+  .tablewrap table { margin-bottom: 0; }
+  code { background: var(--grey-1); padding: 2px 6px; border-radius: 6px; font-size: 14px; }
+  .note { background: var(--grey-1); border-radius: 16px; padding: 18px 22px; margin: 0 0 26px; max-width: 40em; }
+  .note p:last-child { margin: 0; }
+  @media (max-width: 640px) { .three, .four { grid-template-columns: 1fr 1fr; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<header>
+  <div class="mark">AD</div>
+  <h1>Arno Demarteau</h1>
+  <p class="sub">Computer Vision &amp; Computational Photography at UC Berkeley.</p>
+  <div class="chips">
+    <a class="chip" href="../index.html#proj0">Project 0</a>
+    <a class="chip on" href="#proj1">Project 1</a>
+  </div>
+</header>
+
+<section id="proj1">
+  <p class="tag">Project 1</p>
+  <h2>Images of the<br>Russian Empire</h2>
+  <p class="lead">
+    Colorizing the Prokudin-Gorskii glass plate collection by aligning the three channels.
+  </p>
+
+  <div class="part">
+    <p class="num">00</p>
+    <h3>The problem</h3>
+    <div class="two">
+      <figure>
+        <img src="media/cathedral_plate.jpg" alt="Raw glass plate scan of the cathedral, three stacked exposures.">
+        <figcaption><b>Input.</b> One scan, three exposures stacked top to bottom: blue, green, red.</figcaption>
+      </figure>
+      <figure>
+        <img src="media/cathedral_ncc.jpg" alt="Colorized cathedral after alignment.">
+        <figcaption><b>Output.</b> The three exposures aligned and stacked into an RGB image.</figcaption>
+      </figure>
+    </div>
+    <p>
+      Around 1907, Sergei Prokudin-Gorskii photographed the Russian Empire in color by taking
+      three exposures of every scene through a blue, a green and a red filter. The Library of
+      Congress scanned the glass plates, and each scan is one tall grayscale image with the
+      three exposures stacked. The job is to cut the scan into thirds, figure out how the
+      green and red plates are shifted relative to the blue one, and stack them into a
+      color image.
+    </p>
+    <p>
+      Everything below assumes a pure translation is enough: I only search over an integer
+      (x, y) shift for each of the green and red plates and keep blue as the reference.
+    </p>
+  </div>
+
+  <div class="part">
+    <p class="num">01</p>
+    <h3>Single-scale alignment</h3>
+    <p>
+      The naive version is an exhaustive search. For every shift (dx, dy) in a window of
+      [-15, 15] pixels in both directions, I roll the plate with <code>np.roll</code>,
+      compare it to the blue plate with a similarity score, and keep the best shift.
+      That is 31 x 31 = 961 comparisons per plate, which is nothing for the small JPEGs.
+    </p>
+    <p>I implemented two scores:</p>
+    <p>
+      <b>L2 (Euclidean distance).</b> <code>sqrt(sum((a - b)^2))</code> over all pixels.
+      Smaller is better. Cheap, but it directly compares brightness values, so it is
+      thrown off when the two channels are simply exposed differently.
+    </p>
+    <p>
+      <b>NCC (normalized cross-correlation).</b> Subtract the mean from each image,
+      divide by its norm, and take the dot product. Larger is better. Because of the
+      normalization it does not care about a constant offset or scale in brightness, only
+      about whether the two images go up and down in the same places.
+    </p>
+    <p>
+      Two details that matter: I crop 10% off every edge before scoring so the plate borders
+      and the junk that <code>np.roll</code> wraps around from the other side do not
+      dominate the score, and I convert everything to float in [0, 1] first.
+    </p>
+
+    <div class="three">
+      <figure><img src="media/cathedral_ncc.jpg" alt="Cathedral aligned."><figcaption><b>cathedral</b><br>G (2, 5) &middot; R (3, 12)</figcaption></figure>
+      <figure><img src="media/monastery_ncc.jpg" alt="Monastery aligned."><figcaption><b>monastery</b><br>G (2, -3) &middot; R (2, 3)</figcaption></figure>
+      <figure><img src="media/tobolsk_ncc.jpg" alt="Tobolsk aligned."><figcaption><b>tobolsk</b><br>G (3, 3) &middot; R (3, 6)</figcaption></figure>
+    </div>
+    <p>
+      All three low-resolution images align cleanly, and L2 and NCC agree on every offset
+      here. Offsets are given as (x, y) in pixels, the amount the plate was moved to line up
+      with blue.
+    </p>
+  </div>
+
+  <div class="part">
+    <p class="num">02</p>
+    <h3>Image pyramid</h3>
+    <p>
+      The full-resolution TIFF scans are about 3700 x 3200 pixels per plate, and the
+      true offsets are up to ~180 pixels. A [-15, 15] window would miss them entirely, and
+      widening it to [-200, 200] means 160,000 rolls of a 12-megapixel image. Too slow.
+    </p>
+    <p>
+      The fix is coarse-to-fine search. I build the pyramid myself: downsample both plates
+      by 2 (area averaging, so it is anti-aliased), and recurse until the shorter side is
+      under 400 pixels. At that coarsest level I run the same [-15, 15] exhaustive search.
+      Walking back up, each level doubles the estimate from below and only searches a
+      [-2, 2] window around it to fix the rounding. A 3700-pixel plate goes through three
+      halvings, so the total work is one small brute-force search plus three 5 x 5
+      refinements on progressively larger images. Each TIFF takes about 10 seconds.
+    </p>
+    <div class="note">
+      <p>
+        The recursion is a couple of lines: <code>make_shift</code> calls itself on the
+        half-size plates, multiplies the answer by 2, and hands that to the single-scale
+        search as the center of a tiny window. The single-scale function from part 01 is
+        reused unchanged apart from the <code>window</code> and <code>center</code> arguments.
+      </p>
+    </div>
+
+    <div class="tablewrap">
+    <table>
+      <tr><th>Image</th><th>NCC &middot; G</th><th>NCC &middot; R</th><th>L2 &middot; G</th><th>L2 &middot; R</th></tr>
+      <tr><td>cathedral</td><td>(2, 5)</td><td>(3, 12)</td><td>(2, 5)</td><td>(3, 12)</td></tr>
+      <tr><td>monastery</td><td>(2, -3)</td><td>(2, 3)</td><td>(2, -3)</td><td>(2, 3)</td></tr>
+      <tr><td>tobolsk</td><td>(3, 3)</td><td>(3, 6)</td><td>(3, 3)</td><td>(3, 6)</td></tr>
+      <tr><td>church</td><td>(4, 25)</td><td>(-4, 58)</td><td>(4, 25)</td><td>(-4, 58)</td></tr>
+      <tr><td>emir</td><td>(24, 49)</td><td class="bad">(-205, 141)</td><td>(24, 49)</td><td class="bad">(57, 103)</td></tr>
+      <tr><td>harvesters</td><td>(17, 60)</td><td>(13, 124)</td><td>(16, 59)</td><td>(13, 124)</td></tr>
+      <tr><td>icon</td><td>(17, 41)</td><td>(23, 89)</td><td>(17, 41)</td><td>(23, 90)</td></tr>
+      <tr><td>ilemselga</td><td>(7, 40)</td><td>(11, 130)</td><td>(7, 39)</td><td>(11, 130)</td></tr>
+      <tr><td>melons</td><td>(11, 82)</td><td>(13, 178)</td><td>(11, 82)</td><td>(13, 178)</td></tr>
+      <tr><td>religous_painting</td><td>(3, 28)</td><td>(7, 68)</td><td>(3, 28)</td><td>(7, 68)</td></tr>
+      <tr><td>self_portrait</td><td>(29, 79)</td><td>(37, 176)</td><td>(29, 79)</td><td>(37, 176)</td></tr>
+      <tr><td>siren</td><td>(-6, 49)</td><td>(-25, 96)</td><td>(-6, 49)</td><td>(-25, 96)</td></tr>
+      <tr><td>three_generations</td><td>(14, 53)</td><td>(11, 112)</td><td>(14, 53)</td><td>(11, 112)</td></tr>
+      <tr><td>wharf</td><td>(-7, 15)</td><td>(-16, 83)</td><td>(-7, 15)</td><td>(-16, 83)</td></tr>
+    </table>
+    </div>
+
+    <div class="three">
+      <figure><img src="media/church_ncc.jpg" alt="Church."><figcaption><b>church</b></figcaption></figure>
+      <figure><img src="media/harvesters_ncc.jpg" alt="Harvesters."><figcaption><b>harvesters</b></figcaption></figure>
+      <figure><img src="media/icon_ncc.jpg" alt="Icon."><figcaption><b>icon</b></figcaption></figure>
+      <figure><img src="media/ilemselga_ncc.jpg" alt="Ilemselga."><figcaption><b>ilemselga</b></figcaption></figure>
+      <figure><img src="media/melons_ncc.jpg" alt="Melons."><figcaption><b>melons</b></figcaption></figure>
+      <figure><img src="media/religous_painting_ncc.jpg" alt="Religious painting."><figcaption><b>religous_painting</b></figcaption></figure>
+      <figure><img src="media/self_portrait_ncc.jpg" alt="Self portrait."><figcaption><b>self_portrait</b></figcaption></figure>
+      <figure><img src="media/siren_ncc.jpg" alt="Siren."><figcaption><b>siren</b></figcaption></figure>
+      <figure><img src="media/three_generations_ncc.jpg" alt="Three generations."><figcaption><b>three_generations</b></figcaption></figure>
+      <figure><img src="media/wharf_ncc.jpg" alt="Wharf."><figcaption><b>wharf</b></figcaption></figure>
+      <figure><img src="media/emir_ncc.jpg" alt="Emir, misaligned with NCC on raw pixels."><figcaption><b>emir</b> &middot; NCC, failed</figcaption></figure>
+      <figure><img src="media/emir_l2.jpg" alt="Emir, slightly misaligned with L2 on raw pixels."><figcaption><b>emir</b> &middot; L2, close but off</figcaption></figure>
+    </div>
+    <p>
+      13 of 14 images align with both metrics, and the two metrics agree to within a pixel
+      on all of them. The colored stripes around the edges are expected: they are the plate
+      borders plus the pixels <code>np.roll</code> wraps around, and part 04 deals with them.
+      In <b>harvesters</b> a few faces have color halos; that is the people moving between
+      the three exposures, which no translation can undo.
+    </p>
+  </div>
+
+  <div class="part">
+    <p class="num">03</p>
+    <h3>Where it fails: the Emir</h3>
+    <div class="two">
+      <figure>
+        <img src="media/emir_ncc.jpg" alt="Emir misaligned with NCC.">
+        <figcaption><b>NCC on raw pixels.</b> Red plate lands at (-205, 141), a completely wrong optimum.</figcaption>
+      </figure>
+      <figure>
+        <img src="media/emir_l2.jpg" alt="Emir slightly misaligned with L2.">
+        <figcaption><b>L2 on raw pixels.</b> (57, 103) instead of (40, 107). Recognizable, but a 17-pixel fringe around the turban.</figcaption>
+      </figure>
+    </div>
+    <p>
+      The Emir's robe is a saturated blue. That makes it very bright in the blue plate and
+      very dark in the red plate, so over the largest object in the frame the two channels
+      are <i>anti</i>-correlated. Both L2 and NCC assume that matching content means matching
+      brightness, and here that assumption is simply false. At the coarsest pyramid level
+      NCC locks onto a wrong optimum and the small refinement windows on the way up cannot
+      recover. L2 gets closer because the dark background wall still dominates its sum, but
+      it does not land exactly either. The fix is to stop comparing brightness altogether,
+      which is the first of the bells and whistles.
+    </p>
+  </div>
+
+  <div class="part">
+    <p class="num">04</p>
+    <h3>My own images from the collection</h3>
+    <p>
+      Three more plates downloaded from the Library of Congress collection (the ~1000 px
+      JPEG versions, so they go through the single-scale search directly). All three align
+      with both metrics.
+    </p>
+    <div class="three">
+      <figure><img src="media/loc_00176_ncc.jpg" alt="Rhododendrons in a garden."><figcaption><b>LoC 00176</b><br>G (2, 8) &middot; R (3, 15)</figcaption></figure>
+      <figure><img src="media/loc_00185_ncc.jpg" alt="Lake seen through trees."><figcaption><b>LoC 00185</b><br>G (1, 6) &middot; R (-1, 12)</figcaption></figure>
+      <figure><img src="media/loc_00188_ncc.jpg" alt="Villa on a cliff over the sea."><figcaption><b>LoC 00188</b><br>G (0, -1) &middot; R (-1, 7)</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="part">
+    <p class="num">05</p>
+    <h3>Bells &amp; whistles</h3>
+    <p>
+      Five automatic improvements on top of the basic pipeline. The first one changes what
+      the alignment looks at; the other four are post-processing on the finished color image,
+      applied in the order crop, color mapping, white balance, contrast.
+    </p>
+  </div>
+
+  <div class="part">
+    <p class="num">05.1</p>
+    <h3>Better features: aligning on edges</h3>
+    <div class="two">
+      <figure>
+        <img src="media/emir_gradvis.jpg" alt="Gradient magnitude of the Emir's blue plate.">
+        <figcaption><b>What the aligner sees.</b> Sobel gradient magnitude of the blue plate.</figcaption>
+      </figure>
+      <figure>
+        <img src="media/emir_grad.jpg" alt="Emir correctly aligned using gradient features.">
+        <figcaption><b>After.</b> NCC on gradients: R lands at (40, 107). Clean.</figcaption>
+      </figure>
+    </div>
+    <p>
+      Instead of feeding raw intensities to the score, I feed the gradient magnitude of each
+      plate: Sobel derivatives in x and y, combined as <code>sqrt(gx^2 + gy^2)</code>. The
+      robe is bright in one channel and dark in another, but its <i>outline</i> is in the
+      same place in all three, so the edge maps correlate even where the brightness does not.
+      The pyramid and the scoring code are untouched; only the input to <code>make_shift</code>
+      changes, and the shift it returns is applied to the original plate.
+    </p>
+    <p>
+      With gradient features and NCC, all 17 images align. Every offset that was already
+      correct stays within two pixels of the raw-pixel result, and emir goes from (-205, 141)
+      to (40, 107).
+    </p>
+  </div>
+
+  <div class="part">
+    <p class="num">05.2</p>
+    <h3>Automatic cropping</h3>
+    <div class="two">
+      <figure>
+        <img src="media/emir_grad.jpg" alt="Emir before cropping, with colored border stripes.">
+        <figcaption><b>Before.</b> Plate borders and roll wrap-around show up as colored stripes.</figcaption>
+      </figure>
+      <figure>
+        <img src="media/emir_crop.jpg" alt="Emir after automatic cropping.">
+        <figcaption><b>After.</b> Detected and removed on all four sides.</figcaption>
+      </figure>
+    </div>
+    <p>
+      The border has a property the picture does not: the three channels disagree there.
+      In the real scene, red, green and blue rise and fall together; in a fringe, one channel
+      is saturated and the others are not. So for each row and column I compute the mean
+      channel spread, <code>max(R,G,B) - min(R,G,B)</code>, and the mean brightness. Starting
+      at each edge I walk inward until I find 20 consecutive rows (or columns) whose spread is
+      below 1.3x the interior median and whose brightness is neither near black nor near
+      white relative to the interior. That is the edge; I add a 1% safety margin and never
+      remove more than 15% per side. Nothing is hard-coded per image.
+    </p>
+    <div class="four">
+      <figure><img src="media/cathedral_grad.jpg" alt="Cathedral before crop."><figcaption>cathedral, before</figcaption></figure>
+      <figure><img src="media/cathedral_crop.jpg" alt="Cathedral after crop."><figcaption>after</figcaption></figure>
+      <figure><img src="media/three_generations_grad.jpg" alt="Three generations before crop."><figcaption>three_generations, before</figcaption></figure>
+      <figure><img src="media/three_generations_crop.jpg" alt="Three generations after crop."><figcaption>after</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="part">
+    <p class="num">05.3</p>
+    <h3>Better color mapping</h3>
+    <div class="two">
+      <figure>
+        <img src="media/melons_crop.jpg" alt="Melons before color mapping.">
+        <figcaption><b>Before.</b> Plates stacked directly as R, G, B.</figcaption>
+      </figure>
+      <figure>
+        <img src="media/melons_color.jpg" alt="Melons after color mapping.">
+        <figcaption><b>After.</b> Cross-talk removed with a 3x3 matrix.</figcaption>
+      </figure>
+    </div>
+    <p>
+      There is no reason the three filters Prokudin-Gorskii used match the primaries of
+      sRGB. Real filters overlap: the "red" plate also records some green light and so on,
+      so every recorded channel is a mix of the true ones and the result looks slightly
+      washed out. Undoing a mix is a linear operation, so I apply a 3x3 matrix to every pixel.
+      The matrix has a positive diagonal and small negative off-diagonals, which pulls each
+      channel away from its neighbors, and every row sums to 1 so overall brightness is
+      unchanged. I chose the coefficients by hand (1.15 on the diagonal, -0.05 to -0.10 off
+      it); without a reference target there is nothing to fit against. The effect is a mild
+      but visible increase in saturation, especially in the yellows and reds.
+    </p>
+    <div class="four">
+      <figure><img src="media/icon_crop.jpg" alt="Icon before color mapping."><figcaption>icon, before</figcaption></figure>
+      <figure><img src="media/icon_color.jpg" alt="Icon after color mapping."><figcaption>after</figcaption></figure>
+      <figure><img src="media/harvesters_crop.jpg" alt="Harvesters before color mapping."><figcaption>harvesters, before</figcaption></figure>
+      <figure><img src="media/harvesters_color.jpg" alt="Harvesters after color mapping."><figcaption>after</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="part">
+    <p class="num">05.4</p>
+    <h3>Automatic white balance</h3>
+    <div class="two">
+      <figure>
+        <img src="media/cathedral_color.jpg" alt="Cathedral before white balance.">
+        <figcaption><b>Before.</b> Warm cast; the sky is grey-yellow.</figcaption>
+      </figure>
+      <figure>
+        <img src="media/cathedral_wb.jpg" alt="Cathedral after white balance.">
+        <figcaption><b>After.</b> Gray-world: the sky turns blue and the clouds white.</figcaption>
+      </figure>
+    </div>
+    <p>
+      White balance has two halves: guess the color of the light, then divide it out. The
+      second half is easy, a per-channel gain. For the first I use the gray-world assumption:
+      averaged over the whole scene, the world is gray, so if the mean of the image is not
+      gray, the difference is the illuminant. I compute the mean of each channel and scale
+      each channel so its mean matches the average of the three. On most of these images
+      that removes the warm or cyan cast the plates tend to have.
+    </p>
+    <div class="two">
+      <figure>
+        <img src="media/siren_color.jpg" alt="Siren before white balance.">
+        <figcaption><b>Before.</b> Lilacs, correctly purple.</figcaption>
+      </figure>
+      <figure>
+        <img src="media/siren_wb.jpg" alt="Siren after white balance, over-corrected.">
+        <figcaption><b>After.</b> Gray-world fails: it decides the purple is a cast and pushes everything yellow-pink.</figcaption>
+      </figure>
+    </div>
+    <p>
+      The assumption breaks when one color dominates the scene. <b>siren</b> is mostly
+      purple flowers, so gray-world "corrects" them toward gray and the sky goes yellow.
+      That is the known weakness of the method: it has no way to tell a colorful scene from
+      a colored light.
+    </p>
+  </div>
+
+  <div class="part">
+    <p class="num">05.5</p>
+    <h3>Automatic contrast</h3>
+    <div class="two">
+      <figure>
+        <img src="media/three_generations_wb.jpg" alt="Three generations before contrast stretch.">
+        <figcaption><b>Before.</b> Flat, blacks are grey.</figcaption>
+      </figure>
+      <figure>
+        <img src="media/three_generations_contrast.jpg" alt="Three generations after contrast stretch.">
+        <figcaption><b>After.</b> Percentile stretch to the full [0, 1] range.</figcaption>
+      </figure>
+    </div>
+    <p>
+      The scans rarely use the full intensity range. I find the 1st and 99th percentile of
+      all pixel values across the three channels and linearly map them to 0 and 1, clipping
+      what falls outside. Percentiles instead of the true min and max so that a single dust
+      speck or scratch does not set the range. It is one global stretch, not per channel, so
+      the white balance from the previous step is preserved.
+    </p>
+    <div class="four">
+      <figure><img src="media/wharf_wb.jpg" alt="Wharf before contrast."><figcaption>wharf, before</figcaption></figure>
+      <figure><img src="media/wharf_contrast.jpg" alt="Wharf after contrast."><figcaption>after</figcaption></figure>
+      <figure><img src="media/self_portrait_wb.jpg" alt="Self portrait before contrast."><figcaption>self_portrait, before</figcaption></figure>
+      <figure><img src="media/self_portrait_contrast.jpg" alt="Self portrait after contrast."><figcaption>after</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="part">
+    <p class="num">06</p>
+    <h3>Final results</h3>
+    <p>
+      Gradient-feature NCC alignment followed by the full post-processing chain, same
+      parameters for every image.
+    </p>
+    <div class="three">
+      <figure><img src="media/cathedral_contrast.jpg" alt="Cathedral final."><figcaption>cathedral</figcaption></figure>
+      <figure><img src="media/monastery_contrast.jpg" alt="Monastery final."><figcaption>monastery</figcaption></figure>
+      <figure><img src="media/tobolsk_contrast.jpg" alt="Tobolsk final."><figcaption>tobolsk</figcaption></figure>
+      <figure><img src="media/church_contrast.jpg" alt="Church final."><figcaption>church</figcaption></figure>
+      <figure><img src="media/emir_contrast.jpg" alt="Emir final."><figcaption>emir</figcaption></figure>
+      <figure><img src="media/harvesters_contrast.jpg" alt="Harvesters final."><figcaption>harvesters</figcaption></figure>
+      <figure><img src="media/icon_contrast.jpg" alt="Icon final."><figcaption>icon</figcaption></figure>
+      <figure><img src="media/ilemselga_contrast.jpg" alt="Ilemselga final."><figcaption>ilemselga</figcaption></figure>
+      <figure><img src="media/melons_contrast.jpg" alt="Melons final."><figcaption>melons</figcaption></figure>
+      <figure><img src="media/religous_painting_contrast.jpg" alt="Religious painting final."><figcaption>religous_painting</figcaption></figure>
+      <figure><img src="media/self_portrait_contrast.jpg" alt="Self portrait final."><figcaption>self_portrait</figcaption></figure>
+      <figure><img src="media/siren_contrast.jpg" alt="Siren final."><figcaption>siren</figcaption></figure>
+      <figure><img src="media/three_generations_contrast.jpg" alt="Three generations final."><figcaption>three_generations</figcaption></figure>
+      <figure><img src="media/wharf_contrast.jpg" alt="Wharf final."><figcaption>wharf</figcaption></figure>
+      <figure><img src="media/loc_00176_contrast.jpg" alt="LoC 00176 final."><figcaption>LoC 00176</figcaption></figure>
+      <figure><img src="media/loc_00185_contrast.jpg" alt="LoC 00185 final."><figcaption>LoC 00185</figcaption></figure>
+      <figure><img src="media/loc_00188_contrast.jpg" alt="LoC 00188 final."><figcaption>LoC 00188</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span>Arno Demarteau &middot; Fall 2026</span>
+</footer>
+
+</div>
+
+</body>
+</html>
